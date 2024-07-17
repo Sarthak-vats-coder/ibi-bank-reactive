@@ -13,4 +13,5 @@ import reactor.core.publisher.Mono;
 public interface UserServices {
 
 	Flux<User> getAllUser();
-	public Mono<List<SimpleGrantedAuthority>> findAuthoritiesForUserName(String username);}
+	public Mono<List<SimpleGrantedAuthority>> findAuthoritiesForUserName(String username);
+	}

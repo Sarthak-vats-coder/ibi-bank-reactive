@@ -46,7 +46,7 @@ public class User implements UserDetails{
 	private String lname;
 	@NonNull
 	private Integer age;
-	@NonNull
+	
 	private List<SimpleGrantedAuthority> authorities;
 	
 

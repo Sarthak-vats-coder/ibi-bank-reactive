@@ -14,7 +14,8 @@ public interface AuthServices {
 	
 	Mono<User> register(User user) throws Exception;
 
-	Mono<ResponseEntity<String>> signIn(SignInRequest request,ServerWebExchange exchange) ;
+	ResponseEntity<String> signIn(SignInRequest request,ServerWebExchange exchange) ;
 
-	Mono<Authentication> createAuthenticationForUsernamePassword(String username, String password);
+
+	Mono<Authentication> createAuthenticationForUsername(String username);
 }

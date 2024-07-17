@@ -19,10 +19,10 @@ public class JwtTokenProvider {
 	public String generateToken(SignInRequest signInRequest) {
 		return  Jwts
 				.builder()
+				.setSubject(signInRequest.getUsername())
 				.setIssuedAt(new Date())
 				.setExpiration(new Date(new Date().getTime() + 1000 * 3600 * 24))
-				.claim("username", signInRequest
-						.getUsername())
+				.claim("username", signInRequest.getUsername())
 				.claim("password", signInRequest.getPassword())
 				.signWith(key).compact();
 	}
@@ -32,10 +32,10 @@ public class JwtTokenProvider {
 				.parserBuilder()
 				.setSigningKey(key)
 				.build()
-				.parseClaimsJws(jwt).getBody()
+				.parseClaimsJws(jwt)
+				.getBody()
 				.get("username")
 				.toString();
-
 	}
 
 	public static String getPasswordFromJwToken(String jwt) {

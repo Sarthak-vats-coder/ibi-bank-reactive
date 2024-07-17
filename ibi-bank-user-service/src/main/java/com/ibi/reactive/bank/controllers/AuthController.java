@@ -33,7 +33,7 @@ public class AuthController {
 		}
 	
 	@PostMapping("/signIn")
-	public ResponseEntity<Mono<ResponseEntity<String>>> signIn(@Valid @RequestBody SignInRequest request,ServerWebExchange exchange) {
+	public ResponseEntity<ResponseEntity<String>> signIn( @RequestBody SignInRequest request,ServerWebExchange exchange) {
 		return ResponseEntity.ok(authServices.signIn(request, exchange)) ;
 		}
 	

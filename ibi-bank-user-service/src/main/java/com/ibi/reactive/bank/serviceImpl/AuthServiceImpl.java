@@ -1,13 +1,12 @@
 package com.ibi.reactive.bank.serviceImpl;
 
-import java.time.Duration;
 import java.util.ArrayList;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
@@ -19,6 +18,7 @@ import com.ibi.reactive.bank.repositories.UserRepository;
 import com.ibi.reactive.bank.services.AuthServices;
 import com.ibi.reactive.bank.services.UserServices;
 
+import io.netty.handler.codec.http.Cookie;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 @Service
@@ -55,39 +55,49 @@ public class AuthServiceImpl implements AuthServices{
 	}
 
 	@Override
-	public Mono<ResponseEntity<String>> signIn(SignInRequest request, ServerWebExchange exchange) {
-	    return createAuthenticationForUsernamePassword(request.getUsername(), request.getPassword())
-	            .map(auth -> {
-	                String jwt = jwtTokenProvider.generateToken(request);
-	                ResponseCookie cookie = ResponseCookie
-	                        .from("auth_token", jwt)
-	                        .path("/")
-	                        .httpOnly(false)
-//	                        .sameSite("lax")
-	                        .domain("localhost")
-	                        .secure(false)
-	                        .maxAge(24 * 3600)
-	                        .build();
-	                exchange.getResponse().addCookie(cookie);
+	public ResponseEntity<String> signIn(SignInRequest request, ServerWebExchange exchange) {
+		Authentication authentication = new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword());
+		SecurityContextHolder.getContext().setAuthentication(authentication);
+		String jwt = jwtTokenProvider.generateToken(request);
+		exchange.getResponse().addCookie(ResponseCookie
+                .from("auth_token", jwt)
+                .path("/")
+                .httpOnly(false)
+                .domain("localhost")
+                .secure(false)
+                .maxAge(24 * 3600)
+                .build());
+		
+		
+//	    return createAuthenticationForUsername(request.getUsername())
+//	            .map(auth -> {
+//	            	log.atInfo().log("Generating and appending cookie");
+//	                
+//	                exchange.getResponse().addCookie(ResponseCookie
+//	                        .from("auth_token", jwt)
+//	                        .path("/")
+//	                        .httpOnly(false)
+//	                        .domain("localhost")
+//	                        .secure(false)
+//	                        .maxAge(24 * 3600)
+//	                        .build());
+	               
 	                return ResponseEntity.ok("Signed in successfully");
-	            })
-	            .defaultIfEmpty(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed"));
+//	            });
+	            
 	}
 		
 	
 	
+	
 	@Override
-	public Mono<Authentication> createAuthenticationForUsernamePassword(String username, String password) {
-	    return userRepository.findByUsername(username)
-	        .doOnNext(user -> System.out.println("User found: " + user.getUsername()))
-	        .zipWith(
-	            userServices.findAuthoritiesForUserName(username)
-	                .doOnNext(authorities -> System.out.println("Authorities found: " + authorities)),
-	            (user, authorities) -> new UsernamePasswordAuthenticationToken(
-	                user.getUsername(), 
-	                user.getPassword(), 
-	                authorities)
-	        );
+	public Mono<Authentication> createAuthenticationForUsername(String username){
+		return userRepository
+			.findByUsername(username)
+			.zipWith(
+					userServices.findAuthoritiesForUserName(username),
+					(user, authorities) -> new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword(), authorities)
+					);
 	}
 
 }
